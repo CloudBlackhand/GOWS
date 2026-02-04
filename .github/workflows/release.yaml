@@ -1,0 +1,57 @@
+# Build gows binaries and publish release assets (gows-amd64, gows-arm64, gows.proto).
+# Trigger: push a tag (e.g. v1.0.32) so newaha can download from GitHub releases.
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version-file: 'src/go.mod'
+
+      - name: Install protoc
+        run: |
+          sudo apt-get update && sudo apt-get install -y protobuf-compiler
+
+      - name: Install protoc Go plugins
+        run: |
+          go install google.golang.org/protobuf/cmd/protoc-gen-go@latest
+          go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@latest
+          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+
+      - name: Generate proto
+        run: make build-proto
+
+      - name: Build amd64
+        run: |
+          cd src && GOOS=linux GOARCH=amd64 go build -o ../gows-amd64 main.go
+
+      - name: Build arm64
+        run: |
+          cd src && GOOS=linux GOARCH=arm64 go build -o ../gows-arm64 main.go
+
+      - name: Prepare release assets
+        run: |
+          cp proto/gows.proto .
+          ls -la gows-amd64 gows-arm64 gows.proto
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            gows-amd64
+            gows-arm64
+            gows.proto
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
