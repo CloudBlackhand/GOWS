@@ -19,7 +19,7 @@ jobs:
         with:
           go-version-file: 'src/go.mod'
 
-      - name: Install protoc and libvips
+      - name: Install system deps (protoc, libvips for bimg)
         run: |
           sudo apt-get update
           sudo apt-get install -y protobuf-compiler libvips-dev
