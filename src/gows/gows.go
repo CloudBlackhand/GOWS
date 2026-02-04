@@ -35,9 +35,6 @@ func (gows *GoWS) handleEvent(event interface{}) {
 	case *events.AppStateSyncComplete:
 		// Sync completion event; not needed for most use cases.
 		return
-	case *events.AppStateSyncError:
-		// Sync error event; can be logged but doesn't need to be forwarded.
-		return
 	case *events.Contact:
 		// Contact events can be numerous; skip to save RAM (contacts are fetched on-demand).
 		return
